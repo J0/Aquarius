@@ -1,0 +1,11 @@
+{
+  "name": "client",
+  "version": "0.0.1",
+  "description": "Aquarius CLI driver/server client",
+  "main": "index.js",
+  "repository": "https://github.com/leeyjjoel/Aquarius",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^1.12.1"
+  }
+}

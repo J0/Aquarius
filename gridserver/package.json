@@ -1,0 +1,11 @@
+{
+  "name": "gridserver",
+  "version": "0.0.1",
+  "description": "Aquarius service area division server",
+  "main": "index.js",
+  "repository": "https://github.com/leeyjjoel/Aquarius",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^1.12.1"
+  }
+}
