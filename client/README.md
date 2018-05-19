@@ -4,6 +4,8 @@ Aquarius CLI driver/server client
 
 ## Development
 
+The client currently does not work on Node 10 due to some incompatibilities in the Leveldown subdependency. Please use Node 9 instead.
+
 1. Clone the repo
 1. Run `yarn` to install dependencies.
 
