@@ -7,13 +7,18 @@
     "node": ">=10.0"
   },
   "scripts": {
-    "start": "node ./index.js",
-    "watch": "nodemon ./index.js",
-    "lint": "eslint *.js src/**/*.js --config ../.eslintrc.json"
+    "start": "babel-node -- src/index.js",
+    "watch": "nodemon --watch src --exec 'babel-node -- src/index.js' -- ",
+    "lint": "eslint src/**/*.js --config ../.eslintrc.json"
   },
   "repository": "https://github.com/leeyjjoel/Aquarius",
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.47",
+    "@babel/core": "^7.0.0-beta.47",
+    "@babel/node": "^7.0.0-beta.47",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.47",
+    "@babel/preset-env": "^7.0.0-beta.47",
     "eslint": "^4.19.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-config-standard": "^11.0.0",
@@ -24,5 +29,8 @@
     "eslint-plugin-standard": "^3.1.0",
     "nodemon": "^1.17.4",
     "prettier": "^1.12.1"
+  },
+  "dependencies": {
+    "commander": "^2.15.1"
   }
 }

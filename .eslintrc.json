@@ -1,9 +1,6 @@
 {
-  "env": {
-    "node": true
-  },
   "plugins": ["prettier", "node", "import", "promise"],
-  "extends": ["standard", "prettier", "plugin:node/recommended"],
+  "extends": ["standard", "prettier"],
   "rules": {
     "prettier/prettier": "error"
   }
