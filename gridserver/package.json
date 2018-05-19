@@ -3,9 +3,17 @@
   "version": "0.0.1",
   "description": "Aquarius service area division server",
   "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "watch": "nodemon ./index.js"
+  },
   "repository": "https://github.com/leeyjjoel/Aquarius",
   "license": "MIT",
   "devDependencies": {
+    "nodemon": "^1.17.4",
     "prettier": "^1.12.1"
+  },
+  "dependencies": {
+    "express": "^4.16.3"
   }
 }
