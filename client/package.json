@@ -7,8 +7,8 @@
     "node": ">=9"
   },
   "scripts": {
-    "start": "babel-node -- src/index.js",
-    "watch": "nodemon --watch src --exec 'babel-node -- src/index.js' -- ",
+    "start": "babel-node src/index.js",
+    "watch": "nodemon --watch src --exec 'babel-node src/index.js' -- ",
     "lint": "eslint src/**/*.js --config ../.eslintrc.json"
   },
   "repository": "https://github.com/leeyjjoel/Aquarius",
@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "commander": "^2.16.0",
-    "ipfs": "https://github.com/ipfs/js-ipfs"
+    "ipfs": "https://github.com/ipfs/js-ipfs",
+    "node-fetch": "^2.1.2"
   }
 }
