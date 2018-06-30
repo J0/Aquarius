@@ -17,6 +17,7 @@
     "@babel/cli": "^7.0.0-beta.51",
     "@babel/core": "^7.0.0-beta.51",
     "@babel/node": "^7.0.0-beta.51",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.51",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.51",
     "@babel/preset-env": "^7.0.0-beta.51",
     "eslint": "^5.0.1",
@@ -33,6 +34,7 @@
   "dependencies": {
     "commander": "^2.16.0",
     "ipfs": "https://github.com/ipfs/js-ipfs",
-    "node-fetch": "^2.1.2"
+    "node-fetch": "^2.1.2",
+    "uuid": "^3.3.2"
   }
 }
