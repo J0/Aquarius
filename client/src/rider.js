@@ -18,7 +18,7 @@ export default class Rider extends Party {
     if (isBeginNegotiationMessage(msg)) {
       console.log('Start negotiating with', msg, driverAddr);
 
-      const negotiator = new Negotiator(driverAddr, 10, 0, 1, 0.2, false, msg.topic);
+      const negotiator = new Negotiator(driverAddr, 10, 0, 4, 0.2, false, msg.topic);
       this.negotiators[driverAddr] = negotiator;
 
       negotiator

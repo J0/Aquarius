@@ -32,6 +32,8 @@ export default class Negotiator {
     this.chatroom = ipfs.createChatroom(this.topic);
     this.chatroom.setOnMessageCallback(this.messageHandler.bind(this));
     this.price = { priceCeil, priceFloor, idealPrice, stopDelta, preferHigh };
+
+    this.ourOffer = this.initialOffer();
   }
 
   resetSilenceTimer(shouldRestart = true) {
@@ -53,9 +55,11 @@ export default class Negotiator {
   }
 
   counteroffer(price) {
-    if (!price || price < 0) return this.initialOffer();
-    if (this.price.preferHigh) return (this.price.priceCeil + price) / 2.0;
-    return (this.price.priceFloor + price) / 2.0;
+    if (!price || price < 0) return this.ourOffer;
+    const { preferHigh, priceCeil, priceFloor } = this.price;
+    const base = preferHigh ? priceCeil : priceFloor;
+    const diff = base - price;
+    return price + diff / 4.0;
   }
 
   handleOffer(theirOffer) {
@@ -85,10 +89,15 @@ export default class Negotiator {
         if (isNewOfferMessage(msg)) {
           this.handleOffer(msg.price);
         } else if (isConfirmRideMessage(msg)) {
-          this.sendRideConfirmation();
-          // TODO: Confirm that we want to accept this confirmation
-          this.state.confirm();
-          this.resetSilenceTimer(false);
+          const offer = msg.price;
+          // Confirm that we want to accept this confirmation
+          if (this.shouldAccept(offer)) {
+            this.sendRideConfirmation(msg.price);
+            this.state.confirm();
+            this.resetSilenceTimer(false);
+          } else {
+            this.handleOffer(offer);
+          }
         }
         break;
       }
@@ -117,7 +126,7 @@ export default class Negotiator {
     if (shouldSendInitialOffer) {
       const ping = () => {
         if (!this.state.is('bigbang')) return;
-        const offer = this.initialOffer();
+        const offer = this.ourOffer;
         this.chatroom.send(newOfferMessage(this.otherParty, this.counteroffer(offer)));
         setTimeout(ping, 300);
       };
