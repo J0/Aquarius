@@ -11,5 +11,5 @@ export default function startRepl(party) {
     callback(null);
   }
 
-  const r = repl.start({ prompt: '> ', eval: myEval });
+  repl.start({ prompt: '> ', eval: myEval });
 }

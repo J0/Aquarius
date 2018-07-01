@@ -12,7 +12,7 @@ const NEGO_MAX_DURATION = 10000;
 const SILENCE_TIMEOUT = 1000;
 
 export default class Negotiator {
-  constructor(otherParty, priceCeil, priceFloor, idealPrice, stopDelta, preferHigh, topic = null) {
+  constructor(otherParty, priceCeil, priceFloor, idealPrice, stopDelta, preferHigh, topic) {
     this.state = new StateMachine({
       init: 'bigbang',
       transitions: [

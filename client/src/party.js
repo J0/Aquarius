@@ -5,9 +5,7 @@ export default class Party {
     this.negotiators = {};
   }
 
-  onMainChatroomMessage(msg, otherAddr) {
-    console.log('On party msg', msg);
-  }
+  onMainChatroomMessage(msg, otherAddr) {}
 
   async clearNegotiators() {
     await Promise.all(Object.values(this.negotiators).map((negotiator) => negotiator.destroy()));
@@ -16,11 +14,11 @@ export default class Party {
 
   registerCommands(program) {
     program.command('help').action(() => {
-      console.log('No help for you');
+      console.log('TODO: Help');
     });
 
     program.on('--help', () => {
-      console.log('HELP? What help');
+      console.log('TODO: Help');
     });
   }
 }

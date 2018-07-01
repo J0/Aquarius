@@ -19,12 +19,12 @@ program.version('0.0.1');
 
 program.command('driver').action(() => {
   isDriver = true;
-  console.log('IMMA DRIVER BUMAMAMA');
+  console.log("I'm a driver");
 });
 
 program.command('rider').action(() => {
   isDriver = false;
-  console.log('IMMA RIDERUE BUMAMAMA');
+  console.log("I'm a rider");
 });
 
 program.parse(process.argv);
@@ -34,6 +34,7 @@ if (isDriver === undefined) {
   program.help();
 }
 
+// TODO: Use actual location
 const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.json());
 
 Promise.all([ipfs.setup(), gridIDPromise])
