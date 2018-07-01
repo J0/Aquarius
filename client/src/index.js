@@ -15,7 +15,7 @@ if (!process.argv.slice(2).length) {
 
 let isDriver;
 
-program.version('0.0.1').option('-b, --boundary <f>', 'Upper/lower price boundary', parseFloat);
+program.version('0.0.1');
 
 program.command('driver').action(() => {
   isDriver = true;
@@ -39,10 +39,9 @@ const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.
 
 Promise.all([ipfs.setup(), gridIDPromise])
   .then(([ipfs, gridData]) => {
-    const { boundary } = program;
-    console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver, boundary);
+    console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver);
     const chatroom = ipfs.createChatroom(gridData.grid_id);
-    const party = isDriver ? new Driver(chatroom, boundary) : new Rider(chatroom, boundary);
+    const party = isDriver ? new Driver(chatroom) : new Rider(chatroom);
     return party;
   })
   .then(repl);

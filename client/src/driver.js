@@ -3,11 +3,10 @@ import Negotiator from './negotiator';
 import { isNewRideMessage, beginNegotiationMessage } from './models';
 
 export default class Driver extends Party {
-  constructor(gridChatroom, acceptanceBoundary) {
-    super(gridChatroom, acceptanceBoundary);
+  constructor(gridChatroom) {
+    super(gridChatroom);
     // this.wantRiders = false;
     this.wantRiders = true;
-    this.acceptanceBoundary = acceptanceBoundary;
   }
 
   onMainChatroomMessage(msg, riderAddr) {
@@ -45,15 +44,14 @@ export default class Driver extends Party {
   registerCommands(program) {
     super.registerCommands(program);
 
-    program.command('startlooking').action(() => {
-      console.log('Looking for riders');
+    program.command('startlooking <lowerPriceBoundary>').action((acceptanceBoundary) => {
+      console.log('Looking for riders', acceptanceBoundary);
       this.wantRiders = true;
+      this.acceptanceBoundary = acceptanceBoundary;
     });
 
     program.command('stoplooking').action(async () => {
-      console.log('Stopped looking for riders');
-      this.wantRiders = false;
-      await this.clearNegotiators();
+      await this.cancelAllNegotiations();
     });
   }
 }

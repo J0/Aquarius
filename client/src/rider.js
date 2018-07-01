@@ -5,10 +5,9 @@ import { newRideMessage, isBeginNegotiationMessage } from './models';
 const PING_INTERVAL = 3000;
 
 export default class Rider extends Party {
-  constructor(gridChatroom, acceptanceBoundary) {
-    super(gridChatroom, acceptanceBoundary);
+  constructor(gridChatroom) {
+    super(gridChatroom);
     this.wantDrivers = false;
-    this.acceptanceBoundary = acceptanceBoundary;
   }
 
   onMainChatroomMessage(msg, driverAddr) {
@@ -50,9 +49,10 @@ export default class Rider extends Party {
   registerCommands(program) {
     super.registerCommands(program);
 
-    program.command('ride').action(() => {
-      console.log('Looking for drivers');
+    program.command('ride <upperPriceBoundary>').action((acceptanceBoundary) => {
+      console.log('Looking for drivers', acceptanceBoundary);
       this.wantDrivers = true;
+      this.acceptanceBoundary = acceptanceBoundary;
       if (!this.pingTimer) {
         this.sendNewRidePing();
         this.pingTimer = setInterval(this.sendNewRidePing.bind(this), PING_INTERVAL);
@@ -60,7 +60,7 @@ export default class Rider extends Party {
     });
 
     program.command('cancel').action(async () => {
-      await this.cancelNegotiators();
+      await this.cancelAllNegotiations();
     });
   }
 }
