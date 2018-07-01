@@ -5,8 +5,7 @@ import { isNewRideMessage, beginNegotiationMessage } from './models';
 export default class Driver extends Party {
   constructor(gridChatroom) {
     super(gridChatroom);
-    // this.wantRiders = false;
-    this.wantRiders = true;
+    this.wantRiders = false;
   }
 
   onMainChatroomMessage(msg, riderAddr) {
