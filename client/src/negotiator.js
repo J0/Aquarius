@@ -46,6 +46,7 @@ export default class Negotiator {
   }
 
   shouldAccept(price) {
+    if (!price) return false;
     if (this.price.preferHigh) return price > this.price.idealPrice;
     return price < this.price.idealPrice;
   }
@@ -59,7 +60,7 @@ export default class Negotiator {
     const { preferHigh, priceCeil, priceFloor } = this.price;
     const base = preferHigh ? priceCeil : priceFloor;
     const diff = base - price;
-    return price + diff / 4.0;
+    return price + diff / 6.0;
   }
 
   handleOffer(theirOffer) {
@@ -75,6 +76,7 @@ export default class Negotiator {
   }
 
   sendRideConfirmation(price) {
+    this.priceToConfirm = price;
     this.state.startConfirmation();
     this.chatroom.send(confirmRideMessage(this.otherParty, price));
     this.resetSilenceTimer();
@@ -82,40 +84,30 @@ export default class Negotiator {
 
   messageHandler(msg) {
     if (['destroyed', 'confirmed', 'rejected', 'timedout'].includes(this.state.state)) return;
+    if (!isNewOfferMessage(msg) && !isConfirmRideMessage(msg)) return;
 
-    switch (this.state.state) {
-      case 'bigbang':
-      case 'negotiating': {
-        if (isNewOfferMessage(msg)) {
-          this.handleOffer(msg.price);
-        } else if (isConfirmRideMessage(msg)) {
-          const offer = msg.price;
-          // Confirm that we want to accept this confirmation
-          if (this.shouldAccept(offer)) {
-            this.sendRideConfirmation(msg.price);
-            this.state.confirm();
-            this.resetSilenceTimer(false);
-          } else {
-            this.handleOffer(offer);
-          }
-        }
-        break;
-      }
+    const offer = msg.price;
 
-      case 'confirming': {
-        if (isNewOfferMessage(msg)) {
-          // We're confirming and got another offer message
-          this.state.offer();
-          this.handleOffer(msg.price);
-        } else if (isConfirmRideMessage(msg)) {
-          // We're confirming and got confirmation message
-          // TODO: Confirm that confirmed price is the same one that we suggested
+    if (isConfirmRideMessage(msg)) {
+      if (this.state.is('confirming')) {
+        // We're confirming and got confirmation message
+        // Confirm that confirmed price is the same one that we suggested
+        if (offer === this.priceToConfirm) {
           this.state.confirm();
           this.resetSilenceTimer(false);
+          return;
         }
-        break;
+      } else if (this.shouldAccept(offer)) {
+        // We're negotiating and got an offer.
+        // Confirm that we want to accept this confirmation.
+        this.sendRideConfirmation(offer);
+        this.state.confirm();
+        this.resetSilenceTimer(false);
+        return;
       }
     }
+
+    this.handleOffer(offer);
   }
 
   negotiate(shouldSendInitialOffer) {
