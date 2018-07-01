@@ -1,4 +1,5 @@
 import Party from './party';
+import { newRideMessage, isBeginNegotiationMessage } from './models';
 
 const PING_INTERVAL = 3000;
 export default class Rider extends Party {
@@ -6,6 +7,17 @@ export default class Rider extends Party {
 
   derp() {
     return "I'm a Rhider";
+  }
+
+  onMainChatroomMessage(msg, driverAddr) {
+    console.log('On rider msg', msg, this.wantDrivers, this);
+
+    if (!this.wantDrivers) return;
+
+    if (isBeginNegotiationMessage(msg)) {
+      // TODO: negotiate
+      console.log('Start negotiating with', msg, driverAddr);
+    }
   }
 
   registerCommands(program) {
@@ -16,7 +28,7 @@ export default class Rider extends Party {
       this.wantDrivers = true;
       if (!this.pingTimer) {
         this.pingTimer = setInterval(() => {
-          this.gridChatroom.send({ start: 'LOC1', end: 'LOC2' });
+          this.gridChatroom.send(newRideMessage('LOC1', 'LOC2'));
         }, PING_INTERVAL);
       }
     });

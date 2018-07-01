@@ -1,18 +1,24 @@
 export default class Chatroom {
-  constructor(topic, ipfsPubsub, onMessageCallback) {
+  constructor(topic, ipfsPubsub, currentAddress) {
     this.topic = topic;
-    this.onMessageCallback = onMessageCallback;
     this.pubsub = ipfsPubsub;
+    this.currentAddress = currentAddress;
     this.pubsub.subscribe(this.topic, this.messageHandler, { discover: true });
+  }
+
+  setOnMessageCallback(onMessageCallback) {
+    this.onMessageCallback = onMessageCallback;
   }
 
   messageHandler = (msg) => {
     try {
       const messageObj = JSON.parse(msg.data.toString());
+
+      // Ignore messages from us
+      if (msg.from === this.currentAddress) return;
+
       console.log(
-        `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}. ${
-          this.onMessageCallback
-        }`,
+        `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
       );
       this.onMessageCallback && this.onMessageCallback(messageObj, msg.from);
     } catch (e) {}

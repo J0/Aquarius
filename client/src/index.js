@@ -1,10 +1,11 @@
 import program from 'commander';
-import IPFS from 'ipfs';
 import fetch from 'node-fetch';
 import { GRID_SERVER_URL } from '../config';
+
 import Driver from './driver';
 import Rider from './rider';
-import Chatroom from './chatroom';
+import IPFS from './ipfsWrapper';
+
 import repl from './repl';
 
 // Print help and exit if no args provided
@@ -33,51 +34,14 @@ if (isDriver === undefined) {
   program.help();
 }
 
-// TODO: Implement client
-
-// TODO: Configure IPFS to choose random port
-// TODO: Try to get p2p-circuit working
-
-const node = new IPFS({
-  EXPERIMENTAL: {
-    pubsub: true,
-    relay: {
-      enabled: true,
-      hop: { enabled: true, active: false },
-    },
-  },
-});
-
-const nodeReadyPromise = new Promise((resolve) => {
-  node.once('ready', () => resolve());
-});
-
+const ipfs = new IPFS();
 const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.json());
 
-Promise.all([nodeReadyPromise, gridIDPromise])
-  .then(([ready, gridData]) => {
-    console.log('IPFS+GRID READY', ready, gridData, isDriver);
-    const chatroom = new Chatroom(gridData.grid_id, node.pubsub);
+Promise.all([ipfs.setup(), gridIDPromise])
+  .then(([ipfs, gridData]) => {
+    console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver);
+    const chatroom = ipfs.createChatroom(gridData.grid_id);
     const party = isDriver ? new Driver(chatroom) : new Rider(chatroom);
     return party;
   })
   .then(repl);
-
-// node.once('ready', () => {
-// console.log('READY');
-
-// let party;
-
-// console.log(program.args, program.rider);
-// const chatroom = new Chatroom('TOPIC', node.pubsub);
-
-// setInterval(() => {
-// const msg = party ? party.derp() : 'LORECIG';
-// console.log('Publishing', msg);
-// chatroom.send(msg);
-// }, 4000);
-// });
-
-// setInterval(() => {
-// node.pubsub.peers('TOPIC').then((s) => console.log('Pubsub peers', s));
-// }, 3000);
