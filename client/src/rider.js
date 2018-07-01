@@ -2,11 +2,15 @@ import Party from './party';
 import { newRideMessage, isBeginNegotiationMessage } from './models';
 
 const PING_INTERVAL = 3000;
+
 export default class Rider extends Party {
-  wantDrivers = false;
+  constructor(gridChatroom) {
+    super(gridChatroom);
+    this.wantDrivers = false;
+  }
 
   onMainChatroomMessage(msg, driverAddr) {
-    console.log('On rider msg', msg, this.wantDrivers, this);
+    console.log('On rider msg', msg, this.wantDrivers);
 
     if (!this.wantDrivers) return;
 
@@ -16,9 +20,9 @@ export default class Rider extends Party {
     }
   }
 
-  sendNewRidePing = () => {
+  sendNewRidePing() {
     this.gridChatroom.send(newRideMessage('LOC1', 'LOC2'));
-  };
+  }
 
   registerCommands(program) {
     super.registerCommands(program);
@@ -28,15 +32,16 @@ export default class Rider extends Party {
       this.wantDrivers = true;
       if (!this.pingTimer) {
         this.sendNewRidePing();
-        this.pingTimer = setInterval(this.sendNewRidePing, PING_INTERVAL);
+        this.pingTimer = setInterval(this.sendNewRidePing.bind(this), PING_INTERVAL);
       }
     });
 
-    program.command('cancel').action(() => {
+    program.command('cancel').action(async () => {
       console.log('Stopped looking for driders');
       this.wantDrivers = false;
       this.pingTimer && clearInterval(this.pingTimer);
       this.pingTimer = null;
+      await this.clearNegotiators();
     });
   }
 }

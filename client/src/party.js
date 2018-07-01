@@ -9,6 +9,11 @@ export default class Party {
     console.log('On party msg', msg);
   }
 
+  async clearNegotiators() {
+    await Promise.all(Object.values(this.negotiators).map((negotiator) => negotiator.destroy()));
+    this.negotiators = {};
+  }
+
   registerCommands(program) {
     program.command('help').action(() => {
       console.log('No help for you');

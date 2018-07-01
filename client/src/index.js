@@ -4,7 +4,7 @@ import { GRID_SERVER_URL } from '../config';
 
 import Driver from './driver';
 import Rider from './rider';
-import IPFS from './ipfsWrapper';
+import ipfs from './ipfsWrapper';
 
 import repl from './repl';
 
@@ -34,7 +34,6 @@ if (isDriver === undefined) {
   program.help();
 }
 
-const ipfs = new IPFS();
 const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.json());
 
 Promise.all([ipfs.setup(), gridIDPromise])

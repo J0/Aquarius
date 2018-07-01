@@ -1,7 +1,7 @@
 import IPFS from 'ipfs';
 import Chatroom from './chatroom';
 
-export default class IPFSWrapper {
+class IPFSWrapper {
   setup() {
     const node = new IPFS({
       EXPERIMENTAL: {
@@ -28,3 +28,7 @@ export default class IPFSWrapper {
     return new Chatroom(topic, this.node.pubsub, this.identity.id);
   }
 }
+
+// Create IPFS wrapper singleton
+const ipfsWrapper = new IPFSWrapper();
+export default ipfsWrapper;

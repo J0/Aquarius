@@ -3,26 +3,27 @@ export default class Chatroom {
     this.topic = topic;
     this.pubsub = ipfsPubsub;
     this.currentAddress = currentAddress;
-    this.pubsub.subscribe(this.topic, this.messageHandler, { discover: true });
+    this.onMessageCallback = this.messageHandler.bind(this);
+    this.pubsub.subscribe(this.topic, this.onMessageCallback, { discover: true });
   }
 
   setOnMessageCallback(onMessageCallback) {
     this.onMessageCallback = onMessageCallback;
   }
 
-  messageHandler = (msg) => {
+  messageHandler(msg) {
     try {
       const messageObj = JSON.parse(msg.data.toString());
 
       // Ignore messages from us
       if (msg.from === this.currentAddress) return;
 
-      // console.log(
-      // `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
-      // );
+      console.log(
+        `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
+      );
       this.onMessageCallback && this.onMessageCallback(messageObj, msg.from);
     } catch (e) {}
-  };
+  }
 
   async send(messageObj) {
     return this.pubsub.publish(this.topic, Buffer.from(JSON.stringify(messageObj)));
