@@ -7,10 +7,6 @@ export default class Driver extends Party {
     super(gridChatroom);
   }
 
-  derp() {
-    return "I'm a dRIER";
-  }
-
   onMainChatroomMessage(msg, riderAddr) {
     console.log('On driver msg', msg, this.wantRiders);
 

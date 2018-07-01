@@ -12,9 +12,4 @@ export default function startRepl(party) {
   }
 
   const r = repl.start({ prompt: '> ', eval: myEval });
-  // setInterval(() => {
-  // const msg = party ? party.derp() : 'LORECIG';
-  // console.log('Publishing', msg);
-  // chatroom.send(msg);
-  // }, 4000);
 }

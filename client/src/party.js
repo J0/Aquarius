@@ -5,10 +5,6 @@ export default class Party {
     this.negotiators = {};
   }
 
-  derp() {
-    return "I'm a derp";
-  }
-
   onMainChatroomMessage(msg, otherAddr) {
     console.log('On party msg', msg);
   }

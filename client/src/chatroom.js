@@ -17,9 +17,9 @@ export default class Chatroom {
       // Ignore messages from us
       if (msg.from === this.currentAddress) return;
 
-      console.log(
-        `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
-      );
+      // console.log(
+      // `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
+      // );
       this.onMessageCallback && this.onMessageCallback(messageObj, msg.from);
     } catch (e) {}
   };

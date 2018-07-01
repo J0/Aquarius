@@ -5,10 +5,6 @@ const PING_INTERVAL = 3000;
 export default class Rider extends Party {
   wantDrivers = false;
 
-  derp() {
-    return "I'm a Rhider";
-  }
-
   onMainChatroomMessage(msg, driverAddr) {
     console.log('On rider msg', msg, this.wantDrivers, this);
 
@@ -20,6 +16,10 @@ export default class Rider extends Party {
     }
   }
 
+  sendNewRidePing = () => {
+    this.gridChatroom.send(newRideMessage('LOC1', 'LOC2'));
+  };
+
   registerCommands(program) {
     super.registerCommands(program);
 
@@ -27,9 +27,8 @@ export default class Rider extends Party {
       console.log('Looking for drivers');
       this.wantDrivers = true;
       if (!this.pingTimer) {
-        this.pingTimer = setInterval(() => {
-          this.gridChatroom.send(newRideMessage('LOC1', 'LOC2'));
-        }, PING_INTERVAL);
+        this.sendNewRidePing();
+        this.pingTimer = setInterval(this.sendNewRidePing, PING_INTERVAL);
       }
     });
 
