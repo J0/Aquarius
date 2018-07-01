@@ -12,7 +12,7 @@ const NEGO_MAX_DURATION = 10000;
 const SILENCE_TIMEOUT = 1000;
 
 export default class Negotiator {
-  constructor(otherParty, priceCeil, priceFloor, idealPrice, stopDelta, preferHigh, topic) {
+  constructor(otherParty, acceptanceBoundary, preferHigh, topic) {
     this.state = new StateMachine({
       init: 'bigbang',
       transitions: [
@@ -31,7 +31,12 @@ export default class Negotiator {
     this.topic = topic || uuid();
     this.chatroom = ipfs.createChatroom(this.topic);
     this.chatroom.setOnMessageCallback(this.messageHandler.bind(this));
-    this.price = { priceCeil, priceFloor, idealPrice, stopDelta, preferHigh };
+    this.price = {
+      priceCeil: acceptanceBoundary * 2,
+      priceFloor: acceptanceBoundary / 2,
+      acceptanceBoundary,
+      preferHigh,
+    };
 
     this.ourOffer = this.initialOffer();
   }
@@ -47,8 +52,8 @@ export default class Negotiator {
 
   shouldAccept(price) {
     if (!price) return false;
-    if (this.price.preferHigh) return price > this.price.idealPrice;
-    return price < this.price.idealPrice;
+    if (this.price.preferHigh) return price > this.price.acceptanceBoundary;
+    return price < this.price.acceptanceBoundary;
   }
 
   initialOffer() {
@@ -82,6 +87,11 @@ export default class Negotiator {
     this.resetSilenceTimer();
   }
 
+  confirm() {
+    this.state.confirm();
+    this.resetSilenceTimer(false);
+  }
+
   messageHandler(msg) {
     if (['destroyed', 'confirmed', 'rejected', 'timedout'].includes(this.state.state)) return;
     if (!isNewOfferMessage(msg) && !isConfirmRideMessage(msg)) return;
@@ -93,16 +103,14 @@ export default class Negotiator {
         // We're confirming and got confirmation message
         // Confirm that confirmed price is the same one that we suggested
         if (offer === this.priceToConfirm) {
-          this.state.confirm();
-          this.resetSilenceTimer(false);
+          this.confirm();
           return;
         }
       } else if (this.shouldAccept(offer)) {
         // We're negotiating and got an offer.
         // Confirm that we want to accept this confirmation.
         this.sendRideConfirmation(offer);
-        this.state.confirm();
-        this.resetSilenceTimer(false);
+        this.confirm();
         return;
       }
     }
@@ -126,6 +134,7 @@ export default class Negotiator {
     }
 
     return new Promise((resolve, reject) => {
+      const negotiator = this;
       this.state.observe({
         onTimedout() {
           console.log('Timedout');
@@ -137,7 +146,7 @@ export default class Negotiator {
         },
         onConfirmed() {
           console.log('Confirmed!');
-          resolve();
+          resolve({ price: negotiator.priceToConfirm });
         },
       });
     });

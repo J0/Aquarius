@@ -5,9 +5,10 @@ import { newRideMessage, isBeginNegotiationMessage } from './models';
 const PING_INTERVAL = 3000;
 
 export default class Rider extends Party {
-  constructor(gridChatroom) {
-    super(gridChatroom);
+  constructor(gridChatroom, acceptanceBoundary) {
+    super(gridChatroom, acceptanceBoundary);
     this.wantDrivers = false;
+    this.acceptanceBoundary = acceptanceBoundary;
   }
 
   onMainChatroomMessage(msg, driverAddr) {
@@ -18,7 +19,7 @@ export default class Rider extends Party {
     if (isBeginNegotiationMessage(msg)) {
       console.log('Start negotiating with', msg, driverAddr);
 
-      const negotiator = new Negotiator(driverAddr, 10, 0, 4, 0.2, false, msg.topic);
+      const negotiator = new Negotiator(driverAddr, this.acceptanceBoundary, false, msg.topic);
       this.negotiators[driverAddr] = negotiator;
 
       negotiator
