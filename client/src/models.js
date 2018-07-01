@@ -12,8 +12,8 @@ export const beginNegotiationMessage = (target, topic) =>
   newMessage(BEGIN_NEGOTIATION, target, { topic });
 export const isBeginNegotiationMessage = (message) => message.type === BEGIN_NEGOTIATION;
 
-export const newOfferMessage = (target, offer) => newMessage(NEW_OFFER, target, { offer });
+export const newOfferMessage = (target, price) => newMessage(NEW_OFFER, target, { price });
 export const isNewOfferMessage = (message) => message.type === NEW_OFFER;
 
-export const confirmRideMessage = (target) => newMessage(CONFIRM_RIDE, target);
+export const confirmRideMessage = (target, price) => newMessage(CONFIRM_RIDE, target, { price });
 export const isConfirmRideMessage = (message) => message.type === CONFIRM_RIDE;

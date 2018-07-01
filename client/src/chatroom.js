@@ -17,15 +17,18 @@ export default class Chatroom {
 
       // Ignore messages from us
       if (msg.from === this.currentAddress) return;
+      // Ignore messages not for us
+      if (messageObj.target && messageObj.target !== this.currentAddress) return;
 
-      console.log(
-        `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
-      );
+      // console.log(
+      // `Chatroom ${this.topic} got message "${JSON.stringify(messageObj)}" from ${msg.from}`,
+      // );
       this.onMessageCallback && this.onMessageCallback(messageObj, msg.from);
     } catch (e) {}
   }
 
   async send(messageObj) {
+    console.log(`Sending ${JSON.stringify(messageObj)} to ${this.topic}`);
     return this.pubsub.publish(this.topic, Buffer.from(JSON.stringify(messageObj)));
   }
 

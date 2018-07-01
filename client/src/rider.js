@@ -1,4 +1,5 @@
 import Party from './party';
+import Negotiator from './negotiator';
 import { newRideMessage, isBeginNegotiationMessage } from './models';
 
 const PING_INTERVAL = 3000;
@@ -15,13 +16,34 @@ export default class Rider extends Party {
     if (!this.wantDrivers) return;
 
     if (isBeginNegotiationMessage(msg)) {
-      // TODO: negotiate
       console.log('Start negotiating with', msg, driverAddr);
+
+      const negotiator = new Negotiator(driverAddr, 10, 0, 1, 0.2, false, msg.topic);
+      this.negotiators[driverAddr] = negotiator;
+
+      negotiator
+        .negotiate()
+        .then(async (a) => {
+          console.log('Negotiation successful!', a);
+          await this.cancelAllNegotiations();
+        })
+        .catch(async (e) => {
+          console.log('Negotiation failed', e);
+          await negotiator.destroy();
+        });
     }
   }
 
   sendNewRidePing() {
     this.gridChatroom.send(newRideMessage('LOC1', 'LOC2'));
+  }
+
+  async cancelAllNegotiations() {
+    console.log('Stopped looking for drivers');
+    this.wantDrivers = false;
+    this.pingTimer && clearInterval(this.pingTimer);
+    this.pingTimer = null;
+    await this.clearNegotiators();
   }
 
   registerCommands(program) {
@@ -37,11 +59,7 @@ export default class Rider extends Party {
     });
 
     program.command('cancel').action(async () => {
-      console.log('Stopped looking for driders');
-      this.wantDrivers = false;
-      this.pingTimer && clearInterval(this.pingTimer);
-      this.pingTimer = null;
-      await this.clearNegotiators();
+      await this.cancelNegotiators();
     });
   }
 }

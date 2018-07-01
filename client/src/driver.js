@@ -17,24 +17,28 @@ export default class Driver extends Party {
     if (isNewRideMessage(msg) && !(riderAddr in this.negotiators)) {
       console.log('Start negotiating with', msg, riderAddr);
 
-      const negotiator = new Negotiator(10, 0, 3, 0.2, true);
+      const negotiator = new Negotiator(riderAddr, 10, 0, 3, 0.2, true);
       this.negotiators[riderAddr] = negotiator;
 
       this.gridChatroom.send(beginNegotiationMessage(riderAddr, negotiator.topic));
 
       negotiator
-        .negotiate()
-        .then((a) => {
+        .negotiate(true)
+        .then(async (a) => {
           console.log('Negotiation successful!', a);
+          await this.cancelAllNegotiations();
         })
-        .catch((e) => {
+        .catch(async (e) => {
           console.log('Negotiation failed', e);
-        })
-        .finally(async () => {
-          console.log('Foinally');
           await negotiator.destroy();
         });
     }
+  }
+
+  async cancelAllNegotiations() {
+    console.log('Stopped looking for riders');
+    this.wantRiders = false;
+    await this.clearNegotiators();
   }
 
   registerCommands(program) {
