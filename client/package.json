@@ -33,9 +33,11 @@
   },
   "dependencies": {
     "commander": "^2.16.0",
+    "inquirer": "^6.0.0",
     "ipfs": "https://github.com/ipfs/js-ipfs",
     "javascript-state-machine": "^3.0.1",
     "node-fetch": "^2.1.2",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "v8n": "^1.1.2"
   }
 }
