@@ -20,6 +20,7 @@ export default class Negotiator {
         { name: 'offer', from: 'negotiating', to: 'negotiating' },
         { name: 'timeout', from: '*', to: 'timedout' },
         { name: 'permReject', from: 'negotiating', to: 'rejected' },
+        { name: 'startConfirmation', from: 'bigbang', to: 'confirming' },
         { name: 'startConfirmation', from: 'negotiating', to: 'confirming' },
         { name: 'offer', from: 'confirming', to: 'negotiating' },
         { name: 'confirm', from: 'confirming', to: 'confirmed' },

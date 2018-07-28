@@ -1,3 +1,6 @@
+import inquirer from 'inquirer';
+import { Subject } from 'rxjs';
+
 export default class Party {
   constructor(gridChatroom) {
     this.gridChatroom = gridChatroom;
@@ -12,13 +15,9 @@ export default class Party {
     this.negotiators = {};
   }
 
-  registerCommands(program) {
-    program.command('help').action(() => {
-      console.log('TODO: Help');
-    });
-
-    program.on('--help', () => {
-      console.log('TODO: Help');
-    });
+  startRepl() {
+    this.prompts = new Subject();
+    this.bottomBar = new inquirer.ui.BottomBar();
+    this.inquirer = inquirer.prompt(this.prompts);
   }
 }

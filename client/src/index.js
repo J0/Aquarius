@@ -6,8 +6,6 @@ import Driver from './driver';
 import Rider from './rider';
 import ipfs from './ipfsWrapper';
 
-import repl from './repl';
-
 // Print help and exit if no args provided
 if (!process.argv.slice(2).length) {
   program.help();
@@ -37,11 +35,9 @@ if (isDriver === undefined) {
 // TODO: Use actual location
 const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.json());
 
-Promise.all([ipfs.setup(), gridIDPromise])
-  .then(([ipfs, gridData]) => {
-    console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver);
-    const chatroom = ipfs.createChatroom(gridData.grid_id);
-    const party = isDriver ? new Driver(chatroom) : new Rider(chatroom);
-    return party;
-  })
-  .then(repl);
+Promise.all([ipfs.setup(), gridIDPromise]).then(([ipfs, gridData]) => {
+  console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver);
+  const chatroom = ipfs.createChatroom(gridData.grid_id);
+  const party = isDriver ? new Driver(chatroom) : new Rider(chatroom);
+  party.startRepl();
+});
