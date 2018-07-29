@@ -41,3 +41,8 @@ Promise.all([ipfs.setup(), gridIDPromise]).then(([ipfs, gridData]) => {
   const party = isDriver ? new Driver(chatroom) : new Rider(chatroom);
   party.startRepl();
 });
+
+// For debugging unhandled promise rejections
+process.on('unhandledRejection', (reason, p) => {
+  console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
+});
