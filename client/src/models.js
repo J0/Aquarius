@@ -1,7 +1,8 @@
 export const NEW_RIDE = 'NEW_RIDE';
 export const BEGIN_NEGOTIATION = 'BEGIN_NEGOTIATION';
 export const NEW_OFFER = 'NEW_OFFER';
-export const CONFIRM_RIDE = 'CONFIRM_RIDE';
+export const CONFIRM_PRICE = 'CONFIRM_PRICE';
+// export const CONFIRM_RIDE = 'CONFIRM_RIDE';
 
 export const newMessage = (type, target, params) => ({ type, target, ...params });
 
@@ -15,5 +16,5 @@ export const isBeginNegotiationMessage = (message) => message.type === BEGIN_NEG
 export const newOfferMessage = (target, price) => newMessage(NEW_OFFER, target, { price });
 export const isNewOfferMessage = (message) => message.type === NEW_OFFER;
 
-export const confirmRideMessage = (target, price) => newMessage(CONFIRM_RIDE, target, { price });
-export const isConfirmRideMessage = (message) => message.type === CONFIRM_RIDE;
+export const confirmPriceMessage = (target, price) => newMessage(CONFIRM_PRICE, target, { price });
+export const isConfirmPriceMessage = (message) => message.type === CONFIRM_PRICE;

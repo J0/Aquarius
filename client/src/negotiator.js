@@ -4,12 +4,13 @@ import ipfs from './ipfsWrapper';
 import {
   newOfferMessage,
   isNewOfferMessage,
-  confirmRideMessage,
-  isConfirmRideMessage,
+  confirmPriceMessage,
+  isConfirmPriceMessage,
 } from './models';
 
 const NEGO_MAX_DURATION = 10000;
 const SILENCE_TIMEOUT = 1000;
+const SELECTION_PING_INTERVAL = 300;
 
 export default class Negotiator {
   constructor(otherParty, acceptanceBoundary, preferHigh, topic) {
@@ -18,12 +19,14 @@ export default class Negotiator {
       transitions: [
         { name: 'offer', from: 'bigbang', to: 'negotiating' },
         { name: 'offer', from: 'negotiating', to: 'negotiating' },
+        { name: 'startPriceConfirmation', from: 'bigbang', to: 'confirmingPrice' },
+        { name: 'startPriceConfirmation', from: 'negotiating', to: 'confirmingPrice' },
+        { name: 'offer', from: 'confirmingPrice', to: 'negotiating' },
+        { name: 'confirmPrice', from: 'confirmingPrice', to: 'confirmed' },
+        // { name: 'confirmPrice', from: 'confirmingPrice', to: 'pendingSelection' },
+        // { name: 'selectRide', from: 'pendingSelection', to: 'confirmingRide' },
+        // { name: 'confirmRide', from: 'confirmingRide', to: 'confirmedRide' },
         { name: 'timeout', from: '*', to: 'timedout' },
-        { name: 'permReject', from: 'negotiating', to: 'rejected' },
-        { name: 'startConfirmation', from: 'bigbang', to: 'confirming' },
-        { name: 'startConfirmation', from: 'negotiating', to: 'confirming' },
-        { name: 'offer', from: 'confirming', to: 'negotiating' },
-        { name: 'confirm', from: 'confirming', to: 'confirmed' },
         { name: 'destroy', from: '*', to: 'destroyed' },
       ],
     });
@@ -72,7 +75,7 @@ export default class Negotiator {
   handleOffer(theirOffer) {
     this.state.offer();
     if (this.shouldAccept(theirOffer)) {
-      this.sendRideConfirmation(theirOffer);
+      this.sendPriceConfirmation(theirOffer);
       return;
     }
 
@@ -81,37 +84,37 @@ export default class Negotiator {
     this.resetSilenceTimer();
   }
 
-  sendRideConfirmation(price) {
+  sendPriceConfirmation(price) {
     this.priceToConfirm = price;
-    this.state.startConfirmation();
-    this.chatroom.send(confirmRideMessage(this.otherParty, price));
+    this.state.startPriceConfirmation();
+    this.chatroom.send(confirmPriceMessage(this.otherParty, price));
     this.resetSilenceTimer();
   }
 
-  confirm() {
-    this.state.confirm();
+  confirmPrice() {
+    this.state.confirmPrice();
     this.resetSilenceTimer(false);
   }
 
   messageHandler(msg) {
-    if (['destroyed', 'confirmed', 'rejected', 'timedout'].includes(this.state.state)) return;
-    if (!isNewOfferMessage(msg) && !isConfirmRideMessage(msg)) return;
+    if (['destroyed', 'confirmed', 'timedout'].includes(this.state.state)) return;
+    if (!isNewOfferMessage(msg) && !isConfirmPriceMessage(msg)) return;
 
     const offer = msg.price;
 
-    if (isConfirmRideMessage(msg)) {
-      if (this.state.is('confirming')) {
-        // We're confirming and got confirmation message
+    if (isConfirmPriceMessage(msg)) {
+      if (this.state.is('confirmingPrice')) {
+        // We're confirmingPrice and got confirmation message
         // Confirm that confirmed price is the same one that we suggested
         if (offer === this.priceToConfirm) {
-          this.confirm();
+          this.confirmPrice();
           return;
         }
       } else if (this.shouldAccept(offer)) {
         // We're negotiating and got an offer.
         // Confirm that we want to accept this confirmation.
-        this.sendRideConfirmation(offer);
-        this.confirm();
+        this.sendPriceConfirmation(offer);
+        this.confirmPrice();
         return;
       }
     }
@@ -140,10 +143,6 @@ export default class Negotiator {
         onTimedout() {
           console.log('Timedout');
           reject(new Error('Negotiation took too long'));
-        },
-        onRejected() {
-          console.log('Rejected');
-          reject(new Error('Permanently rejected'));
         },
         onConfirmed() {
           console.log('Confirmed!');
