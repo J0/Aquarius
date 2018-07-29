@@ -27,6 +27,8 @@ Example output:
 {
    "lat":"37.7757",
    "long":"-122.4180",
-   "grid_id":"AQUARIUS GRID 47ffc1c1-5772-44d0-a687-b8c812ef5264"
+   "grid_id":"32"
 }
 ```
+
+Note: The above-mentioned REST endpoint utilizes an API. For security reasons, we have not uploaded the key for said API. If you are testing the application, please feel free to contact __Joel__ (@Jzerox2) on telegram to obtain the key.
