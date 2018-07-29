@@ -52,6 +52,11 @@ export default class Driver extends Party {
             })
             .catch((e) => {
               console.log('Multi negotiation failed', e);
+            })
+            .finally(async () => {
+              // Start asking again
+              await this.multipleNegotiator.reset();
+              this.addMinPricePrompt();
             });
         } else {
           // Start asking again

@@ -56,7 +56,12 @@ export default class Rider extends Party {
             .catch((e) => {
               console.log('Multi negotiation failed', e);
             })
-            .finally(() => this.stopPinging());
+            .finally(async () => {
+              this.stopPinging();
+              // Start asking again
+              await this.multipleNegotiator.reset();
+              this.addMaxPricePrompt();
+            });
           this.startPinging();
         } else {
           // Start asking again

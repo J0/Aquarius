@@ -6,6 +6,14 @@ import { isNewRideMessage, beginNegotiationMessage, isBeginNegotiationMessage } 
 
 export default class MultipleNegotiator {
   constructor(gridChatroom) {
+    this.gridChatroom = gridChatroom;
+    this.gridChatroom.setOnMessageCallback(this.onMainChatroomMessage.bind(this));
+
+    this.negotiators = {};
+    this.resetState();
+  }
+
+  resetState() {
     this.state = new StateMachine({
       init: 'idle',
       transitions: [
@@ -16,14 +24,8 @@ export default class MultipleNegotiator {
         // { name: 'select', from: 'selecting', to: 'awaitingConfirmation' },
         // { name: 'startSelecting', from: 'awaitingConfirmation', to: 'selecting' },
         // { name: 'confirm', from: 'awaitingConfirmation', to: 'confirmed' },
-        { name: 'reset', from: '*', to: 'idle' },
       ],
     });
-
-    this.gridChatroom = gridChatroom;
-    this.gridChatroom.setOnMessageCallback(this.onMainChatroomMessage.bind(this));
-
-    this.negotiators = {};
   }
 
   startNegotiating(acceptanceBoundary, preferHigh, isDriver) {
@@ -49,6 +51,13 @@ export default class MultipleNegotiator {
         },
       });
     });
+  }
+
+  async reset() {
+    await this.cancelAllNegotiations();
+    this.price = undefined;
+    this.isDriver = undefined;
+    this.resetState();
   }
 
   onMainChatroomMessage(msg, otherAddr) {
