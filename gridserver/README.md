@@ -6,6 +6,8 @@ Aquarius service area division server
 
 1. Clone the repo
 1. Run `yarn` to install dependencies.
+1. Create a .env file using the example file: `cp .env.example .env`
+1. Populate the .env file.
 
 These scripts can then be used:
 
@@ -31,4 +33,6 @@ Example output:
 }
 ```
 
-Note: The above-mentioned REST endpoint utilizes an API. For security reasons, we have not uploaded the key for said API. If you are testing the application, please feel free to contact __Joel__ (@Jzerox2) on telegram to obtain the key.
+Note: The above-mentioned REST endpoint utilizes an API. For security reasons,
+we have not uploaded the key. If you are testing the application, please feel
+free to contact __Joel__ (@Jzerox2) on telegram to obtain the key.
