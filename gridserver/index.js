@@ -1,6 +1,6 @@
 var fetch = require('node-fetch');
 const express = require('express');
-const MAP_QUEST_API_KEY = `oYKE5xifFEEdwXIbcwMSgOWZUTbsBk7A`;
+const MAP_QUEST_API_KEY = ``;
 const STREETMAPS_WEBSITE = 'https://www.mapquestapi.com/geocoding/v1/reverse';
 const PORT = process.env.PORT || 3000;
 const GRIDID_PREFIX = 'AQUARIUS GRID ';
