@@ -33,7 +33,9 @@ if (isDriver === undefined) {
 }
 
 // TODO: Use actual location
-const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/0/0`).then((res) => res.json());
+const gridIDPromise = fetch(`${GRID_SERVER_URL}/grid/id/1.290270/103.851959`).then((res) =>
+  res.json(),
+);
 
 Promise.all([ipfs.setup(), gridIDPromise]).then(([ipfs, gridData]) => {
   console.log('IPFS+GRID READY', ipfs.identity.id, gridData, isDriver);
