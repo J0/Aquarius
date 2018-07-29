@@ -38,11 +38,8 @@ export default class MultipleNegotiator {
             }, 0);
           } else {
             // TODO: Remove this block when selection implemented
-            multiNegotiator.confirmedOther = Object.keys(multiNegotiator.confirmedPrices)[0];
-            setTimeout(async () => {
-              this.confirm();
-              await multiNegotiator.cancelAllNegotiations();
-            }, 0);
+            const otherAddr = Object.keys(multiNegotiator.confirmedPrices)[0];
+            multiNegotiator.negotiators[otherAddr].select();
           }
         },
       },
@@ -68,7 +65,6 @@ export default class MultipleNegotiator {
       const multiNegotiator = this;
       this.state.observe({
         onFail() {
-          console.log('Idling');
           reject(new Error('Negotiations failed'));
         },
         onConfirmed() {
@@ -108,16 +104,26 @@ export default class MultipleNegotiator {
         this.gridChatroom.send(beginNegotiationMessage(otherAddr, negotiator.topic));
       }
 
-      negotiator
-        .negotiate(this.isDriver)
-        .then(async (a) => {
-          console.log(`Negotiation successful! ${JSON.stringify(a)}`);
-          this.confirmedPrices[otherAddr] = { otherAddr, price: a.price };
-        })
-        .catch(async (e) => {
-          console.log(`Negotiation failed, ${JSON.stringify(e)}`);
-          await negotiator.destroy();
-        });
+      const multiNegotiator = this;
+
+      negotiator.onTimeout = async (e) => {
+        console.log(`Timeout, ${JSON.stringify(e)}`);
+        setTimeout(async () => negotiator.destroy());
+      };
+
+      negotiator.onConfirmedPrice = (a) => {
+        console.log(`Price negotiation successful! ${JSON.stringify(a)}`);
+        multiNegotiator.confirmedPrices[otherAddr] = { otherAddr, price: a.price };
+      };
+
+      negotiator.onConfirmedRide = async (a) => {
+        console.log(`Ride negotiation successful! ${JSON.stringify(a)}`);
+        multiNegotiator.confirmedOther = otherAddr;
+        multiNegotiator.state.confirm();
+        setTimeout(async () => multiNegotiator.cancelAllNegotiations());
+      };
+
+      negotiator.negotiate(multiNegotiator.isDriver);
     }
   }
 

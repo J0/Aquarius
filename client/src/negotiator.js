@@ -6,6 +6,10 @@ import {
   isNewOfferMessage,
   confirmPriceMessage,
   isConfirmPriceMessage,
+  pendingSelectionMessage,
+  isPendingSelectionMessage,
+  confirmRideMessage,
+  isConfirmRideMessage,
 } from './models';
 
 const NEGO_MAX_DURATION = 10000;
@@ -22,10 +26,9 @@ export default class Negotiator {
         { name: 'startPriceConfirmation', from: 'bigbang', to: 'confirmingPrice' },
         { name: 'startPriceConfirmation', from: 'negotiating', to: 'confirmingPrice' },
         { name: 'offer', from: 'confirmingPrice', to: 'negotiating' },
-        { name: 'confirmPrice', from: 'confirmingPrice', to: 'confirmed' },
-        // { name: 'confirmPrice', from: 'confirmingPrice', to: 'pendingSelection' },
-        // { name: 'selectRide', from: 'pendingSelection', to: 'confirmingRide' },
-        // { name: 'confirmRide', from: 'confirmingRide', to: 'confirmedRide' },
+        { name: 'confirmPrice', from: 'confirmingPrice', to: 'pendingSelection' },
+        { name: 'selectRide', from: 'pendingSelection', to: 'confirmingRide' },
+        { name: 'confirmRide', from: 'confirmingRide', to: 'confirmedRide' },
         { name: 'timeout', from: '*', to: 'timedout' },
         { name: 'destroy', from: '*', to: 'destroyed' },
       ],
@@ -86,39 +89,76 @@ export default class Negotiator {
     this.resetSilenceTimer();
   }
 
-  confirmPrice() {
-    this.state.confirmPrice();
-    this.resetSilenceTimer(false);
+  sendPendingSelectionPing() {
+    const price = this.priceToConfirm;
+    this.chatroom.send(pendingSelectionMessage(this.otherParty, price));
+  }
+
+  startPendingSelectionPing() {
+    this.stopPinging();
+    this.sendPendingSelectionPing();
+    this.pingTimer = setInterval(this.sendPendingSelectionPing.bind(this), SELECTION_PING_INTERVAL);
+  }
+
+  sendConfirmRidePing() {
+    const price = this.priceToConfirm;
+    this.chatroom.send(confirmRideMessage(this.otherParty, price));
+  }
+
+  startConfirmRidePing() {
+    this.stopPinging();
+    this.sendConfirmRidePing();
+    this.pingTimer = setInterval(this.sendConfirmRidePing.bind(this), SELECTION_PING_INTERVAL);
+  }
+
+  stopPinging() {
+    this.pingTimer && clearInterval(this.pingTimer);
+    this.pingTimer = null;
   }
 
   messageHandler(msg) {
-    if (['destroyed', 'confirmed', 'timedout'].includes(this.state.state)) return;
-    if (!isNewOfferMessage(msg) && !isConfirmPriceMessage(msg)) return;
+    if (['bigbang', 'negotiating', 'confirmingPrice'].includes(this.state.state)) {
+      if (!isNewOfferMessage(msg) && !isConfirmPriceMessage(msg)) return;
+      const offer = msg.price;
 
-    const offer = msg.price;
-
-    if (isConfirmPriceMessage(msg)) {
-      if (this.state.is('confirmingPrice')) {
-        // We're confirmingPrice and got confirmation message
-        // Confirm that confirmed price is the same one that we suggested
-        if (offer === this.priceToConfirm) {
-          this.confirmPrice();
+      if (isConfirmPriceMessage(msg)) {
+        if (this.state.is('confirmingPrice')) {
+          // We're confirmingPrice and got confirmation message
+          // Confirm that confirmed price is the same one that we suggested
+          if (offer === this.priceToConfirm) {
+            this.state.confirmPrice();
+            this.startPendingSelectionPing();
+            this.resetSilenceTimer();
+            return;
+          }
+        } else if (this.shouldAccept(offer)) {
+          // We're negotiating and got an offer.
+          // Confirm that we want to accept this confirmation.
+          this.sendPriceConfirmation(offer);
+          this.resetSilenceTimer();
           return;
         }
-      } else if (this.shouldAccept(offer)) {
-        // We're negotiating and got an offer.
-        // Confirm that we want to accept this confirmation.
-        this.sendPriceConfirmation(offer);
-        this.confirmPrice();
-        return;
+      }
+
+      this.handleOffer(offer);
+    } else if (this.state.is('pendingSelection')) {
+      if (isPendingSelectionMessage(msg) || isConfirmRideMessage(msg)) {
+        this.resetSilenceTimer();
+      }
+    } else if (this.state.is('confirmingRide')) {
+      if (isPendingSelectionMessage(msg)) {
+        this.resetSilenceTimer();
+      } else if (isConfirmRideMessage(msg)) {
+        this.stopPinging();
+        this.sendConfirmRidePing();
+        this.resetSilenceTimer(false);
+        this.state.confirmRide();
       }
     }
-
-    this.handleOffer(offer);
   }
 
   negotiate(shouldSendInitialOffer) {
-    setTimeout(() => {
+    this.negoTimeout = setTimeout(() => {
       this.state.timeout();
     }, NEGO_MAX_DURATION);
 
@@ -132,19 +172,28 @@ export default class Negotiator {
       ping();
     }
 
-    return new Promise((resolve, reject) => {
-      const negotiator = this;
-      this.state.observe({
-        onTimedout() {
-          console.log('Timedout');
-          reject(new Error('Negotiation took too long'));
-        },
-        onConfirmed() {
-          console.log('Confirmed!');
-          resolve({ price: negotiator.priceToConfirm });
-        },
-      });
+    const negotiator = this;
+    this.state.observe({
+      onTimedout() {
+        negotiator.stopPinging();
+        negotiator.onTimeout && negotiator.onTimeout(new Error('Negotiation took too long'));
+      },
+      onConfirmPrice() {
+        negotiator.negoTimeout && clearTimeout(negotiator.negoTimeout);
+        negotiator.onConfirmedPrice &&
+          negotiator.onConfirmedPrice({ price: negotiator.priceToConfirm });
+      },
+      onConfirmedRide() {
+        negotiator.onConfirmedRide &&
+          negotiator.onConfirmedRide({ price: negotiator.priceToConfirm });
+      },
     });
+  }
+
+  select() {
+    if (!this.state.is('pendingSelection')) return;
+    this.state.selectRide();
+    this.startConfirmRidePing();
   }
 
   async destroy() {

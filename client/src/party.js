@@ -11,11 +11,6 @@ export default class Party {
 
   onMainChatroomMessage(msg, otherAddr) {}
 
-  async clearNegotiators() {
-    await Promise.all(Object.values(this.negotiators).map((negotiator) => negotiator.destroy()));
-    this.negotiators = {};
-  }
-
   startRepl() {
     this.prompts = new Subject();
     this.bottomBar = new inquirer.ui.BottomBar();
