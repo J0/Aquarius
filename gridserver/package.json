@@ -26,6 +26,7 @@
     "prettier": "^1.12.1"
   },
   "dependencies": {
-    "express": "^4.16.3"
+    "express": "^4.16.3",
+    "node-fetch": "^2.2.0"
   }
 }
