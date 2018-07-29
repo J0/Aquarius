@@ -24,6 +24,7 @@ export default class MultipleNegotiator {
         { name: 'startSelecting', from: 'negotiating', to: 'selecting' },
         { name: 'nothingToSelect', from: 'selecting', to: 'fail' },
         { name: 'cancel', from: 'selecting', to: 'fail' },
+        { name: 'startSelecting', from: 'selecting', to: 'selecting' },
         { name: 'select', from: 'selecting', to: 'awaitingConfirmation' },
         { name: 'startSelecting', from: 'awaitingConfirmation', to: 'selecting' },
         { name: 'confirm', from: 'awaitingConfirmation', to: 'confirmed' },
@@ -108,7 +109,7 @@ export default class MultipleNegotiator {
 
         // Ensure that the other party is still there
         if (!Object.keys(this.confirmedPrices).includes(addr)) {
-          this.presentSelectPrompt();
+          this.state.startSelecting();
           return;
         }
 
@@ -119,7 +120,7 @@ export default class MultipleNegotiator {
   }
 
   onMainChatroomMessage(msg, otherAddr) {
-    console.log(`On msg ${JSON.stringify(msg)}, ${this.state.is('negotiating')}`);
+    // console.log(`On msg ${JSON.stringify(msg)}, ${this.state.is('negotiating')}`);
     if (!this.state.is('negotiating')) return;
 
     if (

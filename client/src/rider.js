@@ -47,6 +47,7 @@ export default class Rider extends Party {
       case 'confirmStart':
         if (answer) {
           // Start looking for drivers
+          this.prompts.complete();
           this.bottomBar.log.write(`Looking for drivers ${this.acceptanceBoundary}`);
           this.multipleNegotiator
             .startNegotiating(this.acceptanceBoundary, false, false)
@@ -60,7 +61,7 @@ export default class Rider extends Party {
               this.stopPinging();
               // Start asking again
               await this.multipleNegotiator.reset();
-              this.addMaxPricePrompt();
+              this.startRepl();
             });
           this.startPinging();
         } else {

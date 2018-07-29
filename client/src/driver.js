@@ -44,6 +44,7 @@ export default class Driver extends Party {
       case 'confirmStart':
         if (answer) {
           // Start looking for riders
+          this.prompts.complete();
           this.bottomBar.log.write(`Looking for riders ${this.acceptanceBoundary}`);
           this.multipleNegotiator
             .startNegotiating(this.acceptanceBoundary, true, true)
@@ -56,7 +57,7 @@ export default class Driver extends Party {
             .finally(async () => {
               // Start asking again
               await this.multipleNegotiator.reset();
-              this.addMinPricePrompt();
+              this.startRepl();
             });
         } else {
           // Start asking again

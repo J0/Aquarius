@@ -28,7 +28,7 @@ export default class Chatroom {
   }
 
   async send(messageObj) {
-    console.log(`Sending ${JSON.stringify(messageObj)} to ${this.topic}`);
+    // console.log(`Sending ${JSON.stringify(messageObj)} to ${this.topic}`);
     return this.pubsub.publish(this.topic, Buffer.from(JSON.stringify(messageObj)));
   }
 
