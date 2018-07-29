@@ -1,4 +1,5 @@
 import StateMachine from 'javascript-state-machine';
+import inquirer from 'inquirer';
 import Negotiator from './negotiator';
 import { isNewRideMessage, beginNegotiationMessage, isBeginNegotiationMessage } from './models';
 
@@ -23,13 +24,12 @@ export default class MultipleNegotiator {
         { name: 'startSelecting', from: 'negotiating', to: 'selecting' },
         { name: 'nothingToSelect', from: 'selecting', to: 'fail' },
         { name: 'cancel', from: 'selecting', to: 'fail' },
-        { name: 'confirm', from: 'selecting', to: 'confirmed' },
-        // { name: 'select', from: 'selecting', to: 'awaitingConfirmation' },
-        // { name: 'startSelecting', from: 'awaitingConfirmation', to: 'selecting' },
-        // { name: 'confirm', from: 'awaitingConfirmation', to: 'confirmed' },
+        { name: 'select', from: 'selecting', to: 'awaitingConfirmation' },
+        { name: 'startSelecting', from: 'awaitingConfirmation', to: 'selecting' },
+        { name: 'confirm', from: 'awaitingConfirmation', to: 'confirmed' },
       ],
       methods: {
-        onAfterStartSelecting() {
+        onStartSelecting() {
           // Transition to fail state if there's nothing to be selected.
           if (Object.keys(multiNegotiator.confirmedPrices).length === 0) {
             // HACK: Transition in the next event loop, otherwise it'll crash
@@ -37,9 +37,7 @@ export default class MultipleNegotiator {
               this.nothingToSelect();
             }, 0);
           } else {
-            // TODO: Remove this block when selection implemented
-            const otherAddr = Object.keys(multiNegotiator.confirmedPrices)[0];
-            multiNegotiator.negotiators[otherAddr].select();
+            multiNegotiator.presentSelectPrompt();
           }
         },
       },
@@ -78,9 +76,46 @@ export default class MultipleNegotiator {
     await this.cancelAllNegotiations();
     this.price = undefined;
     this.isDriver = undefined;
+    this.confirmingOther = undefined;
     this.confirmedOther = undefined;
     this.confirmedPrices = {};
     this.resetState();
+  }
+
+  presentSelectPrompt() {
+    inquirer
+      .prompt([
+        {
+          type: 'list',
+          name: 'selectPrompt',
+          message: 'Choose your person!',
+          choices: [
+            ...Object.values(this.confirmedPrices).map(
+              (price) => `Peer ${price.otherAddr} at $${price.price}`,
+            ),
+            'Cancel',
+          ],
+        },
+      ])
+      .then((answers) => {
+        if (answers.selectPrompt === 'Cancel') {
+          this.state.cancel();
+          this.reject && this.reject(new Error('User cancelled'));
+          return;
+        }
+
+        const addr = answers.selectPrompt.split(' ')[1];
+
+        // Ensure that the other party is still there
+        if (!Object.keys(this.confirmedPrices).includes(addr)) {
+          this.presentSelectPrompt();
+          return;
+        }
+
+        this.confirmingOther = addr;
+        this.state.select();
+        this.negotiators[addr].select();
+      });
   }
 
   onMainChatroomMessage(msg, otherAddr) {
@@ -107,8 +142,17 @@ export default class MultipleNegotiator {
       const multiNegotiator = this;
 
       negotiator.onTimeout = async (e) => {
-        console.log(`Timeout, ${JSON.stringify(e)}`);
+        console.log(
+          `Timeout, ${multiNegotiator.confirmingOther} ${otherAddr} ${JSON.stringify(e)}`,
+        );
+
         setTimeout(async () => negotiator.destroy());
+        delete multiNegotiator.confirmedPrices[otherAddr];
+
+        // Start selecting again IF we're confirming with the timeout person
+        if (multiNegotiator.confirmingOther === otherAddr) {
+          multiNegotiator.state.startSelecting();
+        }
       };
 
       negotiator.onConfirmedPrice = (a) => {
