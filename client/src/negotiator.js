@@ -13,7 +13,7 @@ const SILENCE_TIMEOUT = 1000;
 const SELECTION_PING_INTERVAL = 300;
 
 export default class Negotiator {
-  constructor(otherParty, acceptanceBoundary, preferHigh, topic) {
+  constructor(otherParty, price, topic) {
     this.state = new StateMachine({
       init: 'bigbang',
       transitions: [
@@ -35,12 +35,7 @@ export default class Negotiator {
     this.topic = topic || uuid();
     this.chatroom = ipfs.createChatroom(this.topic);
     this.chatroom.setOnMessageCallback(this.messageHandler.bind(this));
-    this.price = {
-      priceCeil: acceptanceBoundary * 2,
-      priceFloor: acceptanceBoundary / 2,
-      acceptanceBoundary,
-      preferHigh,
-    };
+    this.price = price;
 
     this.ourOffer = this.initialOffer();
   }

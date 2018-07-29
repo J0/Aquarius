@@ -1,11 +1,12 @@
 import inquirer from 'inquirer';
 import { Subject } from 'rxjs';
+import MultipleNegotiator from './multipleNegotiator';
 
 export default class Party {
   constructor(gridChatroom) {
     this.gridChatroom = gridChatroom;
     this.gridChatroom.setOnMessageCallback(this.onMainChatroomMessage.bind(this));
-    this.negotiators = {};
+    this.multipleNegotiator = new MultipleNegotiator(this.gridChatroom);
   }
 
   onMainChatroomMessage(msg, otherAddr) {}

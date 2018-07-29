@@ -1,7 +1,5 @@
 import Party from './party';
-import Negotiator from './negotiator';
 import v8n from 'v8n';
-import { isNewRideMessage, beginNegotiationMessage } from './models';
 
 export default class Driver extends Party {
   constructor(gridChatroom) {
@@ -47,7 +45,14 @@ export default class Driver extends Party {
         if (answer) {
           // Start looking for riders
           this.bottomBar.log.write(`Looking for riders ${this.acceptanceBoundary}`);
-          this.wantRiders = true;
+          this.multipleNegotiator
+            .startNegotiating(this.acceptanceBoundary, true, true)
+            .then((a) => {
+              console.log('Ha multi negotiation successful', a);
+            })
+            .catch((e) => {
+              console.log('Multi negotiation failed', e);
+            });
         } else {
           // Start asking again
           this.addMinPricePrompt();
@@ -55,50 +60,4 @@ export default class Driver extends Party {
         break;
     }
   }
-
-  onMainChatroomMessage(msg, riderAddr) {
-    this.bottomBar.log.write(`On driver msg ${JSON.stringify(msg)} ${this.wantRiders}`);
-
-    if (!this.wantRiders) return;
-
-    if (isNewRideMessage(msg) && !(riderAddr in this.negotiators)) {
-      this.bottomBar.log.write(`Start negotiating with ${JSON.stringify(msg)} ${riderAddr}`);
-
-      const negotiator = new Negotiator(riderAddr, this.acceptanceBoundary, true);
-      this.negotiators[riderAddr] = negotiator;
-
-      this.gridChatroom.send(beginNegotiationMessage(riderAddr, negotiator.topic));
-
-      negotiator
-        .negotiate(true)
-        .then(async (a) => {
-          this.bottomBar.log.write(`Negotiation successful! ${JSON.stringify(msg)}`);
-          await this.cancelAllNegotiations();
-        })
-        .catch(async (e) => {
-          this.bottomBar.log.write(`Negotiation failed, ${e}`);
-          await negotiator.destroy();
-        });
-    }
-  }
-
-  async cancelAllNegotiations() {
-    this.bottomBar.log.write('Stopped looking for riders');
-    this.wantRiders = false;
-    await this.clearNegotiators();
-  }
-
-  // registerCommands(program) {
-  // super.registerCommands(program);
-
-  // program.command('startlooking <lowerPriceBoundary>').action((acceptanceBoundary) => {
-  // this.bottomBar.log.write('Looking for riders', acceptanceBoundary);
-  // this.wantRiders = true;
-  // this.acceptanceBoundary = acceptanceBoundary;
-  // });
-
-  // program.command('stoplooking').action(async () => {
-  // await this.cancelAllNegotiations();
-  // });
-  // }
 }
